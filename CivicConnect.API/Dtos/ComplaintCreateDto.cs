@@ -1,3 +1,4 @@
+// Inside CivicConnect.API/Dtos/ComplaintCreateDto.cs
 using System.ComponentModel.DataAnnotations;
 
 namespace CivicConnect.API.Dtos
@@ -13,9 +14,7 @@ namespace CivicConnect.API.Dtos
         public string Description { get; set; } = string.Empty;
 
         [Required]
-        [RegularExpression(@"^[a-zA-Z]+$", ErrorMessage = "Area must contain only alphabets")]
-        public string Area { get; set; } = string.Empty;
-        
-        // Note: We don't ask for UserId here because we will get it from their Token!
+        // REMOVED the strict Regex that was causing 400 Errors
+        public string Area { get; set; } = string.Empty; 
     }
 }

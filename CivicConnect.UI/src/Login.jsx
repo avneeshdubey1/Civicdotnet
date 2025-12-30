@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom'; // Add this line
+import { useNavigate, Link } from 'react-router-dom'; // Added Link
 import { useState } from 'react';
 import axios from 'axios';
 
@@ -10,27 +10,20 @@ export default function Login() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setError(''); // Clear previous errors
+    setError('');
 
     try {
-      // 1. Send POST request to Backend
-      // Note: Port 5192 is from your previous screenshot. Check if yours is different!
       const response = await axios.post('http://localhost:5192/api/Auth/login', {
         email: email,
         password: password
       });
 
-      // 2. If successful, get the Token
       const token = response.data;
-      console.log("Login Success! Token:", token);
-
-      // 3. Save Token to LocalStorage (Browser Memory)
       localStorage.setItem('token', token);
-
-      localStorage.setItem('token', token);
-      navigate('/dashboard');
       
-      // TODO: Redirect to Dashboard (We will do this next)
+      // Decode token to find role (optional, but good practice)
+      // For now, we just redirect
+      navigate('/dashboard'); 
 
     } catch (err) {
       console.error(err);
@@ -48,33 +41,23 @@ export default function Login() {
         <form onSubmit={handleLogin}>
           <div className="mb-4">
             <label className="block text-gray-700 text-sm font-bold mb-2">Email</label>
-            <input 
-              type="email" 
-              className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="admin@civic.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full p-2 border rounded" placeholder="admin@civic.com" />
           </div>
 
           <div className="mb-6">
             <label className="block text-gray-700 text-sm font-bold mb-2">Password</label>
-            <input 
-              type="password" 
-              className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="********"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
+            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full p-2 border rounded" placeholder="********" />
           </div>
 
-          <button 
-            type="submit" 
-            className="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 transition duration-200"
-          >
+          <button type="submit" className="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 transition duration-200">
             Login
           </button>
         </form>
+
+        {/* The Missing Link */}
+        <p className="mt-4 text-center text-sm">
+          Don't have an account? <Link to="/register" className="text-blue-600 font-bold">Register</Link>
+        </p>
       </div>
     </div>
   );

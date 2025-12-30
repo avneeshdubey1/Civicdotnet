@@ -49,8 +49,8 @@ namespace CivicConnect.API.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<ActionResult<string>> Login(UserLoginDto request)
-        {
+        public async Task<ActionResult<object>> Login(UserLoginDto request) // Changed return type to object
+       {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
 
             if (user == null) return BadRequest("User not found.");
@@ -61,7 +61,9 @@ namespace CivicConnect.API.Controllers
             }
 
             string token = CreateToken(user);
-            return Ok(token);
+
+    // CHANGE: Return both Token AND Role
+            return Ok(new { token = token, role = user.Role });
         }
 
         private string CreateToken(User user)

@@ -2,7 +2,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using CivicConnect.API.Data;
 using CivicConnect.API.Models;
+using CivicConnect.API.Dtos;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace CivicConnect.API.Controllers
 {
@@ -17,26 +19,43 @@ namespace CivicConnect.API.Controllers
             _context = context;
         }
 
-        // 1. GET HISTORY
         [HttpGet("my-donations")]
         [Authorize]
         public async Task<ActionResult<IEnumerable<Donation>>> GetMyDonations()
         {
-            return await _context.Donations.OrderByDescending(d => d.DonationDate).ToListAsync();
+            // Get the User ID from the Token
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            
+            return await _context.Donations
+                .Where(d => d.UserId == userId)
+                .OrderByDescending(d => d.DonationDate)
+                .ToListAsync();
         }
 
-        // 2. MOCK DONATION (No External API)
         [HttpPost]
         [Authorize]
-        public async Task<ActionResult<Donation>> PostDonation(Donation donation)
+        public async Task<ActionResult<Donation>> PostDonation(DonationCreateDto request)
         {
-            // We simulate a Payment ID here on the server
-            donation.PaymentId = "MOCK_TXN_" + Guid.NewGuid().ToString().Substring(0, 8).ToUpper();
-            donation.DonationDate = DateTime.Now;
+            // 1. Get User ID from Token
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null) return Unauthorized("User ID not found in token.");
+            
+            var userId = int.Parse(userIdClaim.Value);
+
+            // 2. Create the Donation Entity
+            var donation = new Donation
+            {
+                Amount = request.Amount,
+                Purpose = request.Purpose,
+                PaymentId = request.PaymentId, // Save the REAL Stripe ID
+                DonationDate = DateTime.Now,
+                UserId = userId // Link to the user
+            };
 
             _context.Donations.Add(donation);
             await _context.SaveChangesAsync();
-            return CreatedAtAction("GetMyDonations", new { id = donation.Id }, donation);
+
+            return Ok(donation);
         }
     }
 }

@@ -6,134 +6,83 @@ export default function Complaints() {
   const [complaints, setComplaints] = useState([]);
   const [title, setTitle] = useState('');
   const [desc, setDesc] = useState('');
+  const [isAdmin, setIsAdmin] = useState(false); // New State
   const navigate = useNavigate();
 
-  // 1. Fetch Complaints when page loads
   useEffect(() => {
     fetchComplaints();
+    checkAdminRole();
   }, []);
 
+  const checkAdminRole = () => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    
+    // Decode token to find role (Simple check)
+    // In a real app, you'd use a library like 'jwt-decode'
+    // For now, let's assume you stored the role in localStorage on Login
+    const role = localStorage.getItem('role'); 
+    if (role === 'Admin') setIsAdmin(true);
+  };
+
   const fetchComplaints = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      // If not logged in, go back to login page
-      if (!token) { 
-        navigate('/'); 
-        return; 
-      }
+    const token = localStorage.getItem('token');
+    const response = await axios.get('http://localhost:5192/api/Complaints', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    setComplaints(response.data);
+  };
 
-      // Check your backend port! I am using 5192 based on your previous messages.
-      const response = await axios.get('http://localhost:5192/api/Complaints', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setComplaints(response.data);
+  // NEW: Admin Action
+  const handleResolve = async (id) => {
+    const token = localStorage.getItem('token');
+    const remark = prompt("Enter resolution remark:");
+    if (!remark) return;
+
+    try {
+      await axios.put(`http://localhost:5192/api/Complaints/${id}/resolve`, 
+        { resolutionRemark: remark },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      alert("Complaint Resolved!");
+      fetchComplaints(); // Refresh list
     } catch (error) {
-      console.error("Error fetching complaints:", error);
+      alert("Failed to resolve. Are you really an Admin?");
     }
   };
 
-  // 2. Handle New Complaint Submission
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const token = localStorage.getItem('token');
-      
-      await axios.post('http://localhost:5192/api/Complaints', {
-        title: title,
-        description: desc,
-        location: "Detected Location" // Hardcoded for now
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      alert("Complaint Registered!");
-      setTitle('');
-      setDesc('');
-      fetchComplaints(); // Refresh the list instantly
-    } catch (error) {
-      console.error(error);
-      alert("Failed to register complaint.");
-    }
-  };
+  // ... (Keep your existing handleSubmit logic here) ...
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-6xl mx-auto">
-        {/* Header with Back Button */}
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800">Public Grievances</h1>
-          <button 
-            onClick={() => navigate('/dashboard')} 
-            className="text-blue-600 hover:underline font-semibold"
-          >
-            ← Back to Dashboard
-          </button>
-        </div>
+      {/* ... (Keep your existing Header/Form code) ... */}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* LEFT: Submit Form */}
-          <div className="bg-white p-6 rounded-lg shadow-md h-fit">
-            <h2 className="text-xl font-bold mb-4 text-blue-600">Report an Issue</h2>
-            <form onSubmit={handleSubmit}>
-              <div className="mb-4">
-                <label className="block text-sm font-bold mb-2">Issue Title</label>
-                <input 
-                  className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" 
-                  placeholder="e.g., Deep Pothole"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  required
-                />
+      {/* RIGHT SIDE: List */}
+      <div>
+        <h2 className="text-xl font-bold mb-4">Recent Complaints</h2>
+        <div className="space-y-4">
+          {complaints.map((c) => (
+            <div key={c.id} className="bg-white p-4 rounded shadow border-l-4 border-blue-500">
+              <div className="flex justify-between">
+                 <h3 className="font-bold">{c.title}</h3>
+                 <span className={`px-2 py-1 rounded text-xs ${c.status === 'Resolved' ? 'bg-green-100' : 'bg-yellow-100'}`}>
+                    {c.status}
+                 </span>
               </div>
-              <div className="mb-4">
-                <label className="block text-sm font-bold mb-2">Description</label>
-                <textarea 
-                  className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" 
-                  rows="4"
-                  placeholder="Details about the problem..."
-                  value={desc}
-                  onChange={(e) => setDesc(e.target.value)}
-                  required
-                ></textarea>
-              </div>
-              <button 
-                type="submit"
-                className="w-full bg-blue-600 text-white font-bold py-2 rounded hover:bg-blue-700 transition"
-              >
-                Submit Complaint
-              </button>
-            </form>
-          </div>
-
-          {/* RIGHT: List of Complaints */}
-          <div>
-            <h2 className="text-xl font-bold mb-4 text-gray-700">Recent Complaints</h2>
-            {complaints.length === 0 ? (
-              <p className="text-gray-500 italic">No complaints found.</p>
-            ) : (
-              <div className="space-y-4 h-96 overflow-y-auto pr-2">
-                {complaints.map((c) => (
-                  <div key={c.id} className="bg-white p-4 rounded shadow border-l-4 border-blue-500">
-                    <div className="flex justify-between items-start">
-                      <h3 className="font-bold text-lg text-gray-800">{c.title}</h3>
-                      <span className={`text-xs px-2 py-1 rounded-full font-bold uppercase ${
-                        c.status === "Resolved" 
-                          ? "bg-green-100 text-green-800" 
-                          : "bg-yellow-100 text-yellow-800"
-                      }`}>
-                        {c.status}
-                      </span>
-                    </div>
-                    <p className="text-gray-600 text-sm mt-2">{c.description}</p>
-                    <div className="mt-3 pt-3 border-t border-gray-100 flex justify-between items-center text-xs text-gray-400">
-                      <span>📍 {c.location}</span>
-                      <span>ID: {c.id}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+              <p className="text-gray-600">{c.description}</p>
+              <p className="text-xs text-gray-400 mt-2">📍 {c.area}</p>
+              
+              {/* ADMIN BUTTON - Only shows if isAdmin is true */}
+              {isAdmin && c.status === 'Pending' && (
+                <button 
+                  onClick={() => handleResolve(c.id)}
+                  className="mt-3 bg-green-600 text-white text-xs px-3 py-1 rounded hover:bg-green-700"
+                >
+                  ✅ Mark as Resolved
+                </button>
+              )}
+            </div>
+          ))}
         </div>
       </div>
     </div>

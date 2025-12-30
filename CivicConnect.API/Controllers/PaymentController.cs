@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using CivicConnect.API.Services;
+using Stripe;
+using Stripe.Checkout;
 
 namespace CivicConnect.API.Controllers
 {
@@ -7,30 +8,52 @@ namespace CivicConnect.API.Controllers
     [ApiController]
     public class PaymentController : ControllerBase
     {
-        private readonly PaymentService _paymentService;
+        private readonly IConfiguration _configuration;
 
-        public PaymentController(PaymentService paymentService)
+        public PaymentController(IConfiguration configuration)
         {
-            _paymentService = paymentService;
+            _configuration = configuration;
+            StripeConfiguration.ApiKey = _configuration["Stripe:SecretKey"];
         }
 
-        // POST: api/Payment/create-order
-        [HttpPost("create-order")]
-        public IActionResult CreateOrder([FromBody] PaymentRequest request)
+        [HttpPost("create-checkout-session")]
+        public ActionResult CreateCheckoutSession([FromBody] PaymentRequest request)
         {
-            if (request.Amount <= 0)
-                return BadRequest("Amount must be greater than 0");
+            var options = new SessionCreateOptions
+            {
+                PaymentMethodTypes = new List<string> { "card" },
+                LineItems = new List<SessionLineItemOptions>
+                {
+                    new SessionLineItemOptions
+                    {
+                        PriceData = new SessionLineItemPriceDataOptions
+                        {
+                            UnitAmount = (long)(request.Amount * 100),
+                            Currency = "inr",
+                            ProductData = new SessionLineItemPriceDataProductDataOptions
+                            {
+                                Name = "Donation",
+                            },
+                        },
+                        Quantity = 1,
+                    },
+                },
+                Mode = "payment",
+                // Redirect user here after payment
+                SuccessUrl = $"http://localhost:5173/payment-success?amount={request.Amount}&purpose={request.Purpose}&session_id={{CHECKOUT_SESSION_ID}}",
+                CancelUrl = "http://localhost:5173/donate",
+            };
 
-            // Use the service to generate the ID (Just like your example!)
-            string orderId = _paymentService.CreateMockOrder(request.Amount);
+            var service = new SessionService();
+            Session session = service.Create(options);
 
-            return Ok(new { orderId = orderId });
+            return Ok(new { url = session.Url });
         }
     }
 
-    // DTO class for the request body
     public class PaymentRequest
     {
         public decimal Amount { get; set; }
+        public string Purpose { get; set; }
     }
 }

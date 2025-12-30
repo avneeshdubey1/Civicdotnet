@@ -1,18 +1,32 @@
-/* General Reset */
+/* Reset & Base */
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
-/* This container forces the footer to the bottom */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f3f4f6; /* Light gray background for contrast */
+}
+
+/* 1. Flex Container (Forces full height) */
 .app-container {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  min-height: 100vh; /* Takes up 100% of the viewport height */
 }
 
-/* Header Styling */
+/* 2. Main Content (The "Grow" Trick) */
+.main-content {
+  flex: 1; /* This magic line pushes the footer down */
+  width: 100%;
+  max-width: 1200px; /* limits width on big screens so it doesn't look stretched */
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+/* 3. Header Styling */
 .site-header {
   background-color: #ffffff;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -28,14 +42,11 @@
 
 .logo {
   font-size: 1.5rem;
-  font-weight: 700;
-  color: #333;
+  font-weight: 800;
+  color: #1e293b;
   text-decoration: none;
 }
-
-.logo span {
-  color: #007bff; 
-}
+.logo span { color: #2563eb; } /* Blue Accent */
 
 .nav-links {
   display: flex;
@@ -45,60 +56,33 @@
 
 .nav-links a {
   text-decoration: none;
-  color: #555;
-  font-weight: 500;
-  transition: color 0.3s;
+  color: #64748b;
+  font-weight: 600;
+  transition: color 0.2s;
 }
+.nav-links a:hover { color: #2563eb; }
 
-.nav-links a:hover {
-  color: #e63946;
-}
-
-.btn-login {
-  padding: 8px 20px;
-  background-color: #e63946;
-  color: white !important;
-  border-radius: 5px;
-}
-
-/* Main Content Area */
-.main-content {
-  flex: 1; /* This pushes the footer down */
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem;
-}
-
-/* Footer Styling */
+/* 4. Footer Styling */
 .site-footer {
-  background-color: #1d3557;
+  background-color: #1e293b; /* Dark Blue/Slate */
   color: white;
-  padding: 2rem;
-  text-align: center;
-  margin-top: auto;
+  padding: 3rem 2rem;
+  margin-top: auto; /* Double safety to push it down */
 }
 
 .footer-content {
-  display: flex;
-  justify-content: space-between;
   max-width: 1200px;
   margin: 0 auto;
-  flex-wrap: wrap;
-  gap: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 2rem;
 }
 
 .footer-section h4 {
-  margin-bottom: 10px;
-  color: #a8dadc;
+  color: #93c5fd;
+  margin-bottom: 1rem;
 }
 
-.footer-section ul {
-  list-style: none;
-}
-
-.footer-section a {
-  color: #f1faee;
-  text-decoration: none;
-  font-size: 0.9rem;
-}
+.footer-section ul { list-style: none; }
+.footer-section a { color: #cbd5e1; text-decoration: none; }
+.footer-section a:hover { color: white; }
