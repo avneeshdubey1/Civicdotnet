@@ -40,7 +40,7 @@ namespace CivicConnect.API.Controllers
                 },
                 Mode = "payment",
                 // Redirect user here after payment
-                SuccessUrl = $"http://localhost:5173/payment-success?amount={request.Amount}&purpose={request.Purpose}&session_id={{CHECKOUT_SESSION_ID}}",
+                SuccessUrl = $"http://localhost:5173/payment-success?amount={request.Amount}&purpose={Uri.EscapeDataString(request.Purpose)}&session_id={{CHECKOUT_SESSION_ID}}",
                 CancelUrl = "http://localhost:5173/donate",
             };
 

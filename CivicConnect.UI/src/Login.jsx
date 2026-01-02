@@ -18,8 +18,14 @@ export default function Login() {
         password: password
       });
 
-      const token = response.data;
+      // FIX: Extract the specific 'token' string from the object
+      const token = response.data.token; 
       localStorage.setItem('token', token);
+      
+      // Optional: Save the role too if you need it later
+      if (response.data.role) {
+          localStorage.setItem('role', response.data.role);
+      }
       
       // Decode token to find role (optional, but good practice)
       // For now, we just redirect

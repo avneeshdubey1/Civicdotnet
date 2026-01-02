@@ -19,11 +19,22 @@ namespace CivicConnect.API.Controllers
             _context = context;
         }
 
+        // 1. ADMIN ONLY: See ALL Donations
+        [HttpGet]
+        [Authorize(Roles = "Admin")] 
+        public async Task<ActionResult<IEnumerable<Donation>>> GetAllDonations()
+        {
+            return await _context.Donations
+                .Include(d => d.User) // Include User info so Admin knows who donated
+                .OrderByDescending(d => d.DonationDate)
+                .ToListAsync();
+        }
+
+        // 2. REGULAR USERS: See ONLY their own Donations
         [HttpGet("my-donations")]
         [Authorize]
         public async Task<ActionResult<IEnumerable<Donation>>> GetMyDonations()
         {
-            // Get the User ID from the Token
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
             
             return await _context.Donations
@@ -36,20 +47,18 @@ namespace CivicConnect.API.Controllers
         [Authorize]
         public async Task<ActionResult<Donation>> PostDonation(DonationCreateDto request)
         {
-            // 1. Get User ID from Token
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (userIdClaim == null) return Unauthorized("User ID not found in token.");
             
             var userId = int.Parse(userIdClaim.Value);
 
-            // 2. Create the Donation Entity
             var donation = new Donation
             {
                 Amount = request.Amount,
                 Purpose = request.Purpose,
-                PaymentId = request.PaymentId, // Save the REAL Stripe ID
+                PaymentId = request.PaymentId, 
                 DonationDate = DateTime.Now,
-                UserId = userId // Link to the user
+                UserId = userId 
             };
 
             _context.Donations.Add(donation);

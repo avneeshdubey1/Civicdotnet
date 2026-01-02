@@ -16,7 +16,8 @@ const PaymentSuccess = () => {
       const amount = searchParams.get('amount');
       const purpose = searchParams.get('purpose');
       const sessionId = searchParams.get('session_id');
-      const token = localStorage.getItem('token');
+      let token = localStorage.getItem('token');
+      if (token) token = token.replace(/^"|"$/g, '');
 
       if (!token || !sessionId) {
         setStatus("⚠️ Invalid Session. Please log in.");
