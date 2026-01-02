@@ -12,15 +12,14 @@ namespace CivicConnect.API.Dtos
         public string Email { get; set; } = string.Empty;
 
         [Required]
-        [MinLength(6)]
+        // Regex: Min 6 chars, at least 1 letter, at least 1 number OR special char
+        [RegularExpression(@"^(?=.*[A-Za-z])(?=.*\d|.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$", 
+            ErrorMessage = "Password must be at least 6 characters long and contain at least 1 letter AND (1 number OR 1 special character).")]
         public string Password { get; set; } = string.Empty;
 
         [Required]
-        [Phone]
         public string MobileNumber { get; set; } = string.Empty;
 
-        // "Citizen", "Admin", or "NGO"
-        [Required]
-        public string Role { get; set; } = "Citizen"; 
+        public string Role { get; set; } = "User"; 
     }
 }

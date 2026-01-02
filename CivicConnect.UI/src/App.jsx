@@ -2,7 +2,7 @@ import { Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
 import Home from "./Home";
 import Login from "./Login";
-import Register from "./Register"; // Import the new page
+import Register from "./Register";
 import Dashboard from "./Dashboard";
 import Complaints from "./Complaints";
 import Events from "./Events";
@@ -14,9 +14,15 @@ import About from "./About";
 function App() {
   return (
     <Routes>
-      {/* 1. Pages inside Layout (Header + Footer) */}
+      {/* 1. Public Landing Page (No Standard Layout) */}
+      <Route path="/" element={<Home />} />
+
+      {/* 2. Authentication Pages (No Header/Footer) */}
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+
+      {/* 3. Protected/Standard Pages (With Header + Footer) */}
       <Route element={<Layout />}>
-        <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/complaints" element={<Complaints />} />
@@ -25,10 +31,6 @@ function App() {
         <Route path="/donate" element={<Donate />} />
         <Route path="/payment-success" element={<PaymentSuccess />} />
       </Route>
-
-      {/* 2. Authentication Pages (No Header/Footer) */}
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} /> {/* New Route */}
     </Routes>
   );
 }
